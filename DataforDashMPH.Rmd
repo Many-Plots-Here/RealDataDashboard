@@ -1,0 +1,103 @@
+---
+title: "DataForDashMPH"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r ~ Univariate Data Prep}
+# clean memory
+rm(list = ls()) 
+
+# read in the data 
+linkCSV2='https://github.com/Many-Plots-Here/DashboardData/raw/main/Washington_State_Public_Schools.csv'
+schools=read.csv(linkCSV2)
+
+#load in libraries
+library(scales)
+library(ggplot2)
+library(rio)
+library(ggrepel)
+
+#Creating the data table: 
+#Preparing the frequency table 
+absoluteT=table(schools$GradeCategory) #make absolute values table
+propT=prop.table(absoluteT)*100 #turn into prop table and get percentages
+tableFreq=as.data.frame(absoluteT) #create frequency table
+names(tableFreq)=c("GradeCategory","Count") #rename columns 
+tableFreq$Percent=as.vector(propT) #add percentage columns 
+
+# order locales by percent
+tableFreq=tableFreq[order(tableFreq$Percent),]
+
+# save data frame: SchoolCatTableFreq
+write.csv(tableFreq,"SchoolCatTableFreq.csv",row.names = F)
+
+#save as RDS
+saveRDS(tableFreq, 'SchoolCatTableFreq.rds')
+
+
+```
+```{r ~ Bivariate Data Prep}
+# read in the data
+linkCVS2 = 'https://github.com/Many-Plots-Here/DashboardData/raw/main/stupop%20by%20county%202.csv'
+stupop <- read.csv(linkCVS2)
+
+# load libraries
+library(ggplot2)
+
+# subset schools with >10,000 students 
+Over10K = stupop[stupop$FTE.Students>=10000,]
+
+# save the dataframe
+write.csv(Over10K, "Over10K.csv", row.names=F)
+
+# save as RDS
+saveRDS(Over10K, 'Over10k.rds')
+
+```
+```{r ~ Map Data Prep}
+
+link_stupop='https://github.com/Many-Plots-Here/realdeliverable3/raw/main/stupop%20by%20county%202.csv'
+stupop <- read.csv(link_stupop)
+
+link_schools='https://github.com/Many-Plots-Here/realdeliverable3/raw/main/Washington_State_Public_Schools.csv'
+schools=read.csv(link_schools)
+
+# create countSchools 
+countSchools=as.data.frame(table(schools$LEAName))
+countSchools$district=gsub(" School District","",countSchools$Var1)
+
+# merge datasets
+distmerge <- merge(countSchools, stupop, by = "district", by.y = "Name", all = TRUE)
+distmerge$sturatio <- distmerge$FTE.Students/distmerge$Freq
+
+# View structure:
+str(stupop)
+
+#load geojson file
+myGit="https://github.com/Many-Plots-Here/realdeliverable3/"
+myGeo="raw/main/Washington_School_District_Boundaries_Masked.geojson"
+mapLink=paste0(myGit, myGeo)
+
+# Import WA County dataset
+
+library(sf)
+wadist <- read_sf(mapLink)
+
+library(dplyr)
+
+mapdata = merge(distmerge, wadist, by.x = "district", by.y = "ShortName", all = TRUE)
+mapdata = subset(mapdata, select = c(geometry,sturatio))
+
+saveRDS(mapdata, file = "mapdata2.rds")
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

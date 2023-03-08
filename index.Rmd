@@ -1,0 +1,46 @@
+---
+title: "Washington School Data Dashboard"
+output: 
+  flexdashboard::flex_dashboard:
+    orientation: columns
+---
+
+```{r setup, include=FALSE}
+library(flexdashboard)
+```
+
+[comment]: first page notice use of ===
+
+Univariate and Bivariate
+=====================================
+
+Column {.tabset}
+-----------------------------------------------------------------------
+
+### Univariate
+
+```{r}
+readRDS("WashingtonSchoolTypes.rds")
+```
+
+Column {data-width=350}
+-----------------------------------------------------------------------
+
+### Bivariate
+
+```{r}
+readRDS("Over10Kplot.rds")
+```
+
+Map {data-orientation=rows}
+=====================================
+
+Row
+-----------------------------------------------------------------------
+
+### Multivariate
+
+```{r}
+readRDS("finalmap1.rds")
+```
+

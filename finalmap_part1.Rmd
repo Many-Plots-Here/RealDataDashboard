@@ -1,0 +1,57 @@
+---
+title: "Data for map"
+output:
+  html_document:
+    df_print: paged
+---
+
+```{r}
+rm(list = ls())
+
+link_stupop='https://github.com/Many-Plots-Here/realdeliverable3/raw/main/stupop%20by%20county%202.csv'
+stupop <- read.csv(link_stupop)
+
+link_schools='https://github.com/Many-Plots-Here/realdeliverable3/raw/main/Washington_State_Public_Schools.csv'
+schools=read.csv(link_schools)
+```
+
+
+```{r}
+countSchools=as.data.frame(table(schools$LEAName))
+countSchools$district=gsub(" School District","",countSchools$Var1)
+
+#merge datasets
+distmerge <- merge(countSchools, stupop, by = "district", by.y = "Name", all = TRUE)
+distmerge$sturatio <- distmerge$FTE.Students/distmerge$Freq
+
+```
+
+View structure:
+```{r}
+str(stupop)
+```
+```{r}
+myGit="https://github.com/Many-Plots-Here/realdeliverable3/"
+myGeo="raw/main/Washington_School_District_Boundaries_Masked.geojson"
+mapLink=paste0(myGit, myGeo)
+```
+
+Import WA County dataset
+```{r}
+library(sf)
+wadist <- read_sf(mapLink)
+```
+
+```{r}
+library(dplyr)
+
+mapdata = merge(distmerge, wadist, by.x = "district", by.y = "ShortName", all = TRUE)
+mapdata = subset(mapdata, select = c(geometry,sturatio))
+
+saveRDS(mapdata, file = "/Users/jessicaluong/Documents/GitHub/realdeliverable3/mapdata.rds")
+```
+
+
+
+
+

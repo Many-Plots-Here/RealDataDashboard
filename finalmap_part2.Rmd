@@ -1,0 +1,67 @@
+---
+title: "Final Project Part 2"
+output: html_notebook
+---
+
+Plot merged map:
+```{r}
+rm(list = ls())
+link_mapdata = url("https://github.com/Many-Plots-Here/realdeliverable3/raw/main/mapdata2.rds")
+#load(link_mapdata)
+mapdata <- readRDS(link_mapdata)
+```
+
+```{r}
+myGit="https://github.com/Many-Plots-Here/realdeliverable3/"
+myGeo="raw/main/Washington_School_District_Boundaries_Masked.geojson"
+mapLink=paste0(myGit, myGeo)
+```
+
+Import WA County dataset
+```{r}
+library(sf)
+wadist <- read_sf(mapLink)
+```
+
+```{r}
+library(ggplot2)
+base=ggplot(data=wadist, aes(geometry=geometry)) + theme_classic()
+basemap=base + geom_sf(fill='grey', color=NA)
+
+basemap
+```
+
+
+```{r}
+ratiomap <- basemap + geom_sf(data = mapdata, aes(fill=sturatio, geometry=geometry), color=NA) 
+ratiomap
+```
+
+```{r}
+gradientmap <- ratiomap + scale_fill_gradient(low = "#deebf7", high = "#3182bd")
+gradientmap
+```
+
+```{r}
+titleText='Student to school ratio in WA by school district'
+sourceText='Sources: Washington Geospatial Open Data Portal and Washington OSPI'
+
+finalmap1 <- gradientmap + labs(title=titleText, x = NULL, y = NULL, caption = sourceText) + guides(fill=guide_legend(title="Student to school ratio"))
+finalmap1
+
+saveRDS(finalmap1, file = "finalmap1.rds")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
